@@ -19,9 +19,14 @@ int main() {
     api.sendMessage(chat_id, "Hello, " + message_ptr->chat->username);
   });
 
-  bot.getEvents().onCommand("cpp", [&bot](TgBot::Message::Ptr message) {
+  bot.getEvents().onCommand("cpp", [&api](TgBot::Message::Ptr message) {
     TgBot::InputFile::Ptr photo = TgBot::InputFile::fromFile("ISO_C++_Logo.svg.png", "image/png");
-    bot.getApi().sendPhoto(message->chat->id, photo);
+    api.sendPhoto(message->chat->id, photo);
+  });
+
+  bot.getEvents().onAnyMessage( [&api](TgBot::Message::Ptr message_ptr) {
+    const auto chat_id = message_ptr->chat->id;
+    api.sendMessage(chat_id, message_ptr->text);
   });
 
   bot.getEvents().onUnknownCommand([&api](TgBot::Message::Ptr message_ptr) {
