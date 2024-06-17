@@ -1,7 +1,7 @@
 #include <tgbot/tgbot.h>
 
 int main() {
-  TgBot::Bot bot("7411232470:AAHTDVw80FPIfhqyMSy34nc0_mcLc9meuQA");
+  TgBot::Bot bot("6834213547:AAGsRMnIu-9ZcuYc5l6RqkAwKFLAxtfhCT8");
   auto& api = bot.getApi();
 
   bot.getEvents().onCommand("start", [&api](TgBot::Message::Ptr message_ptr) {
