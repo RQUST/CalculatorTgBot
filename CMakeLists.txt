@@ -9,7 +9,7 @@ find_package(Boost COMPONENTS system REQUIRED)
 find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-add_executable(calculator_tg_bot main.cpp)
+add_executable(calculator_tg_bot main.cpp bot/calculator_bot.h)
 
 target_link_libraries(calculator_tg_bot
     PRIVATE
