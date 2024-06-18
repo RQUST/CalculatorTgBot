@@ -5,11 +5,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(SOURSES
 		    main.cpp
+            calculator/calculator/calculator.cpp
+            calculator/calculator/parser.cpp  
+            calculator/polish_notation/polish_notation.cpp
+            calculator/tokenize/tokenize.cpp
             
 )
 
 set(HEADERS 
             bot/calculator_bot.h
+            calculator/calculator/calculator.h
+            calculator/calculator/parser.h
+            calculator/polish_notation/expressions.h
+            calculator/polish_notation/polish_notation.h
+            calculator/tokenize/tokenize.h
 )
 
 
@@ -39,4 +48,4 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -g -Wall -Wextra -pedantic -Werror -Wno-self-assign-overloaded -Wno-missing-braces")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# include_directories(.)
+include_directories(.)
