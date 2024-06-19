@@ -46,8 +46,8 @@ class CalculatorBot {
     try {
       auto logs = db_.GetLastTenLogs(chat_id);
       std::string history_message = "Last 10 calculations:\n";
-      for (const auto& [timestamp, expression] : logs) {
-        history_message += timestamp + " - " + expression + "\n";
+      for (const auto& [timestamp, result] : logs) {
+        history_message += timestamp + " - " + std::to_string(result) + "\n";
       }
       if (logs.empty()) {
         history_message += "No calculations found.\n";
@@ -60,9 +60,7 @@ class CalculatorBot {
 
   void ActionOnAnyMessage(TgBot::Message::Ptr message_ptr) {
     const std::string& text = message_ptr->text;
-    // Check if the message is a command
     if (text[0] == '/') {
-      // Command is already handled, do nothing
       return;
     } else {
       ActionOnCalculate(message_ptr);
@@ -74,7 +72,7 @@ class CalculatorBot {
       const std::string& text = message_ptr->text;
       int result = CalculateExpression(text);
       bot_.getApi().sendMessage(message_ptr->chat->id, "Result: " + std::to_string(result));
-      db_.InsertLog(message_ptr->chat->id, text);  // Сохраняем запрос в базу данных
+      db_.InsertLog(message_ptr->chat->id, result);
     } catch (const std::exception& e) {
       bot_.getApi().sendMessage(message_ptr->chat->id, "Error: " + std::string(e.what()));
     }

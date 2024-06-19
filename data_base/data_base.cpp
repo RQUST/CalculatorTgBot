@@ -8,9 +8,24 @@ Database::Database() : db_(nullptr) {
   }
 
   char* err_msg = nullptr;
+
+  // Удаляем старую таблицу (если существует)
+  const char* drop_table_query = "DROP TABLE IF EXISTS CalculationLogs";
+  if (sqlite3_exec(db_, drop_table_query, nullptr, nullptr, &err_msg) != SQLITE_OK) {
+    std::string err_message = "SQL error while dropping table: ";
+    err_message += err_msg;
+    sqlite3_free(err_msg);
+    sqlite3_close(db_);
+    throw std::runtime_error(err_message);
+  }
+
+  // Создаем новую таблицу
   const char* create_table_query =
-      "CREATE TABLE IF NOT EXISTS CalculationLogs (Id INTEGER PRIMARY KEY AUTOINCREMENT, Timestamp DATETIME DEFAULT "
-      "CURRENT_TIMESTAMP, ChatId INTEGER, Expression TEXT)";
+      "CREATE TABLE IF NOT EXISTS CalculationLogs ("
+      "Id INTEGER PRIMARY KEY AUTOINCREMENT, "
+      "Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, "
+      "ChatId INTEGER, "
+      "Result INTEGER)";
   if (sqlite3_exec(db_, create_table_query, nullptr, nullptr, &err_msg) != SQLITE_OK) {
     std::string err_message = "SQL error: ";
     err_message += err_msg;
@@ -21,42 +36,68 @@ Database::Database() : db_(nullptr) {
 }
 
 Database::~Database() {
-  sqlite3_close(db_);
+  if (db_) {
+    sqlite3_close(db_);
+  }
 }
 
-void Database::InsertLog(int64_t chat_id, const std::string& expression) {
-  const char* insert_query = "INSERT INTO CalculationLogs (ChatId, Expression) VALUES (?, ?)";
+void Database::InsertLog(int64_t chat_id, int result) {
+  static const char* insert_query = "INSERT INTO CalculationLogs (ChatId, Result) VALUES (?, ?)";
   sqlite3_stmt* stmt = nullptr;
+
   if (sqlite3_prepare_v2(db_, insert_query, -1, &stmt, nullptr) != SQLITE_OK) {
-    throw std::runtime_error("Failed to prepare insert statement");
+    std::string err_message = "Failed to prepare insert statement: ";
+    err_message += sqlite3_errmsg(db_);
+    throw std::runtime_error(err_message);
   }
 
-  sqlite3_bind_int64(stmt, 1, chat_id);
-  sqlite3_bind_text(stmt, 2, expression.c_str(), -1, SQLITE_STATIC);
+  if (sqlite3_bind_int64(stmt, 1, chat_id) != SQLITE_OK || sqlite3_bind_int(stmt, 2, result) != SQLITE_OK) {
+    std::string err_message = "Failed to bind values: ";
+    err_message += sqlite3_errmsg(db_);
+    sqlite3_finalize(stmt);
+    throw std::runtime_error(err_message);
+  }
 
   if (sqlite3_step(stmt) != SQLITE_DONE) {
-    throw std::runtime_error("Insert statement execution failed");
+    std::string err_message = "Insert statement execution failed: ";
+    err_message += sqlite3_errmsg(db_);
+    sqlite3_finalize(stmt);
+    throw std::runtime_error(err_message);
   }
 
   sqlite3_finalize(stmt);
 }
 
-std::vector<std::tuple<std::string, std::string>> Database::GetLastTenLogs(int64_t chat_id) {
-  std::vector<std::tuple<std::string, std::string>> logs;
-  const char* select_query =
-      "SELECT Timestamp, Expression FROM CalculationLogs WHERE ChatId = ? ORDER BY Timestamp DESC LIMIT 10";
+std::vector<std::tuple<std::string, int>> Database::GetLastTenLogs(int64_t chat_id) const {
+  std::vector<std::tuple<std::string, int>> logs;
+  static const char* select_query =
+      "SELECT Timestamp, Result FROM CalculationLogs WHERE ChatId = ? ORDER BY Timestamp DESC LIMIT 10";
   sqlite3_stmt* stmt = nullptr;
 
   if (sqlite3_prepare_v2(db_, select_query, -1, &stmt, nullptr) != SQLITE_OK) {
-    throw std::runtime_error("Failed to prepare select statement");
+    std::string err_message = "Failed to prepare select statement: ";
+    err_message += sqlite3_errmsg(db_);
+    throw std::runtime_error(err_message);
   }
 
-  sqlite3_bind_int64(stmt, 1, chat_id);
+  if (sqlite3_bind_int64(stmt, 1, chat_id) != SQLITE_OK) {
+    std::string err_message = "Failed to bind value: ";
+    err_message += sqlite3_errmsg(db_);
+    sqlite3_finalize(stmt);
+    throw std::runtime_error(err_message);
+  }
 
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     std::string timestamp(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-    std::string expression(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-    logs.emplace_back(std::make_tuple(timestamp, expression));
+    int result = sqlite3_column_int(stmt, 1);
+    logs.emplace_back(std::make_tuple(timestamp, result));
+  }
+
+  if (sqlite3_errcode(db_) != SQLITE_DONE && sqlite3_errcode(db_) != SQLITE_ROW) {
+    std::string err_message = "Failed to retrieve logs: ";
+    err_message += sqlite3_errmsg(db_);
+    sqlite3_finalize(stmt);
+    throw std::runtime_error(err_message);
   }
 
   sqlite3_finalize(stmt);

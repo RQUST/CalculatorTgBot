@@ -7,15 +7,15 @@
 #include <tuple>
 
 class Database {
-private:
-    sqlite3* db_;
+ private:
+  sqlite3* db_;
 
-public:
-    Database();
-    ~Database();
+ public:
+  Database();
+  ~Database();
 
-    void InsertLog(int64_t chat_id, const std::string& expression);
-    std::vector<std::tuple<std::string, std::string>> GetLastTenLogs(int64_t chat_id);
+  void InsertLog(int64_t chat_id, int result);
+  [[nodiscard]] std::vector<std::tuple<std::string, int>> GetLastTenLogs(int64_t chat_id) const;
 };
 
-#endif // DATABASE_H
+#endif  // DATABASE_H
