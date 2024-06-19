@@ -1,0 +1,1 @@
+add_executable(test_calculator_bot test_calculator_bot.cpp)
