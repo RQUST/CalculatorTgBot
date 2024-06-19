@@ -22,7 +22,7 @@ class CalculatorBot {
     bot_.getEvents().onCommand("hello",
                                [this](TgBot::Message::Ptr message_ptr) { ActionOnHello(message_ptr->chat->id); });
 
-    bot_.getEvents().onAnyMessage([this](TgBot::Message::Ptr message_ptr) { ActionOnCalculate(message_ptr); });
+    bot_.getEvents().onAnyMessage([this](TgBot::Message::Ptr message_ptr) { ActionOnAnyMessage(message_ptr); });
   }
 
   void ActionOnStart(int64_t chat_id) {
@@ -35,6 +35,17 @@ class CalculatorBot {
 
   void ActionOnHello(int64_t chat_id) {
     bot_.getApi().sendMessage(chat_id, "Hello");
+  }
+
+  void ActionOnAnyMessage(TgBot::Message::Ptr message_ptr) {
+    const std::string& text = message_ptr->text;
+    // Check if the message is a command
+    if (text[0] == '/') {
+      // Command is already handled, do nothing
+      return;
+    } else {
+      ActionOnCalculate(message_ptr);
+    }
   }
 
   void ActionOnCalculate(TgBot::Message::Ptr message_ptr) {
