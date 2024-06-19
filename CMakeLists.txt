@@ -9,6 +9,7 @@ set(SOURSES
             calculator/calculator/parser.cpp  
             calculator/polish_notation/polish_notation.cpp
             calculator/tokenize/tokenize.cpp
+            data_base/data_base.cpp
             
 )
 
@@ -19,6 +20,7 @@ set(HEADERS
             calculator/polish_notation/expressions.h
             calculator/polish_notation/polish_notation.h
             calculator/tokenize/tokenize.h
+            data_base/data_base.h
 )
 
 
