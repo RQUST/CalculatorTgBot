@@ -52,8 +52,8 @@ class CalculatorBot {
     try {
       auto logs = db_.GetLastTenLogs(chat_id);
       std::string history_message = "Last 10 calculations:\n";
-      for (const auto& [timestamp, result] : logs) {
-        history_message += timestamp + " - " + std::to_string(result) + "\n";
+      for (const auto& [timestamp, result] : logs) {       // Измените этот цикл
+        history_message += std::to_string(result) + "\n";  // Отображаем только результат
       }
       if (logs.empty()) {
         history_message += "No calculations found.\n";
