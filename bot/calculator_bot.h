@@ -35,7 +35,13 @@ class CalculatorBot {
   }
 
   void ActionOnHelp(int64_t chat_id) {
-    bot_.getApi().sendMessage(chat_id, "No Help");
+    std::string help_message =
+        "Available commands:\n"
+        "/start - Start the bot\n"
+        "/help - Show this help message\n"
+        "/hello - Say hello to the bot\n"
+        "/history - Show the last 10 calculations\n";
+    bot_.getApi().sendMessage(chat_id, help_message);
   }
 
   void ActionOnHello(int64_t chat_id) {
